@@ -22,9 +22,9 @@ async def main():
     # 启动触发监控任务
     asyncio.create_task(active.monitor_triggers())
     
-    # 保持事件循环运行（替代 sleep_forever）
+    # 保持事件循环运行
     while True:
-        await asyncio.sleep(1)  # 每秒检查一次
+        await asyncio.sleep(1)
 
 if __name__ == '__main__':
     asyncio.run(main())
