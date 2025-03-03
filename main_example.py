@@ -9,12 +9,17 @@ async def audio_handler():
         await play_audio("http://192.168.101.164:6799/nihao.wav")
     except Exception as e:
         print("播放失败:", e)
+        
+def trigger_callback():
+    """回调函数，执行音频播放"""
+    await audio_handler() 
+    print("音频播放完成，继续执行其他任务...") 
 
 async def main():
     print("Welcome to MicroPython!")
     
     # 注册触发回调
-    active.register_trigger_callback(audio_handler)
+    active.register_trigger_callback(trigger_callback)
     
     # 连接WiFi
     await do_connect()
