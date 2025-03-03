@@ -6,7 +6,7 @@ class TriggerManager:
     def __init__(self, debounce_ms=200):
         self.trigger_count = 0
         self.callbacks = []
-        self._trigger_event = asyncio.Event()  # 使用 Event 替代 Queue
+        self._trigger_event = asyncio.Event()
         self.active_pin = Pin(7, Pin.IN, Pin.PULL_DOWN)
         self.debounce_ms = debounce_ms
         self._last_trigger = 0
@@ -16,7 +16,7 @@ class TriggerManager:
         now = time.ticks_ms()
         if time.ticks_diff(now, self._last_trigger) > self.debounce_ms:
             self.trigger_count += 1
-            self._trigger_event.set()  # 设置事件标志
+            self._trigger_event.set()
             self._last_trigger = now
 
     def register_callback(self, callback):
