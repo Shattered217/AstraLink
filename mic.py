@@ -1,87 +1,106 @@
-from machine import I2S, Pin
 import time
 import uos
+from machine import I2S, Pin
 
-# 配置I2S引脚
-sck_pin = Pin(4)  # 串行时钟
-ws_pin = Pin(5)   # 字选择
-sd_pin = Pin(6)   # 串行数据
+# 配置I2S音频接口参数
+sck_pin = Pin(4)  # SCK接4
+ws_pin = Pin(5)   # WS接5
+sd_pin = Pin(6)   # SD接6
 
-# 音频参数配置
-sampleRate = 16000       # 采样率：16kHz
-bitsPerSample = 16       # 位深度：16-bit
-num_channels = 1         # 声道数：单声道
-bufSize = 4096           # 缓冲区大小：4KB
-file_duration = 5        # 录音时长：5秒
+# 采样率和每个样本的位数
+sampleRate = 8000  # 采样率
+bitsPerSample = 16  # 采样位深
+num_channels = 1  
+bufSize = 32000    # 缓冲区大小，单位字节
+file_duration = 5  # 录音时长（秒）
 
-def create_wav_header(sample_rate, bits_per_sample, num_channels, data_size):
-    """生成WAV文件头"""
-    byte_rate = sample_rate * num_channels * bits_per_sample // 8
-    block_align = num_channels * bits_per_sample // 8
+# 创建音频对象，开始录音
+audioInI2S = I2S(
+    0,  # 设备ID，0代表第一个I2S设备
+    sck=sck_pin,
+    ws=ws_pin,
+    sd=sd_pin,
+    mode=I2S.RX,
+    bits=bitsPerSample,
+    format=I2S.MONO,
+    rate=sampleRate,
+    ibuf=bufSize
+)
+
+# 读取音频数据并写入文件
+def createWavHeader(sampleRate, bitsPerSample, num_channels, data_size):
+    # WAV文件头的构造，适用于16位深、单通道或立体声
+    header = bytearray()
     
-    header = bytes()
-    header += b'RIFF'
-    header += (data_size + 36).to_bytes(4, 'little')  # 文件总大小
-    header += b'WAVE'
-    header += b'fmt '
-    header += (16).to_bytes(4, 'little')             # fmt块大小
-    header += (1).to_bytes(2, 'little')              # PCM格式
-    header += num_channels.to_bytes(2, 'little')     # 声道数
-    header += sample_rate.to_bytes(4, 'little')      # 采样率
-    header += byte_rate.to_bytes(4, 'little')        # 字节率
-    header += block_align.to_bytes(2, 'little')      # 块对齐
-    header += bits_per_sample.to_bytes(2, 'little')  # 位深度
-    header += b'data'
-    header += data_size.to_bytes(4, 'little')        # 数据大小
+    # RIFF头
+    header.extend(b'RIFF')
+    header.extend((36 + data_size).to_bytes(4, 'little'))  # 总大小 = 36 + 数据大小
+    header.extend(b'WAVE')
+    
+    # fmt块
+    header.extend(b'fmt ')
+    header.extend((16).to_bytes(4, 'little'))  # fmt块的大小
+    header.extend((1).to_bytes(2, 'little'))  # 编码方式 (1为PCM)
+    header.extend((num_channels).to_bytes(1, 'little'))  # 声道数
+    header.extend((sampleRate).to_bytes(4, 'little'))  # 采样率
+    header.extend((sampleRate * num_channels * bitsPerSample // 8).to_bytes(4, 'little'))  # 每秒字节数
+    header.extend((num_channels * bitsPerSample // 8).to_bytes(2, 'little'))  # 每个采样的字节数
+    header.extend((bitsPerSample).to_bytes(2, 'little'))  # 采样位数
+    
+    # data块
+    header.extend(b'data')
+    header.extend((data_size).to_bytes(4, 'little'))  # 数据块大小
+    
     return header
 
-def record_audio(filename, duration):
-    """录制音频并保存为WAV文件"""
-    # 初始化I2S音频输入
-    audioInI2S = I2S(
-        0,  # 设备ID
-        sck=sck_pin,
-        ws=ws_pin,
-        sd=sd_pin,
-        mode=I2S.RX,
-        bits=bitsPerSample,
-        format=I2S.MONO if num_channels == 1 else I2S.STEREO,
-        rate=sampleRate,
-        ibuf=bufSize
-    )
+# 开始录音并保存音频数据到文件
+def record_audio():
+    # 创建读取缓冲区
+    readBuf = bytearray(bufSize)
+    recoder = True
+    start_time = time.time()
     
-    # 检查文件是否存在，若存在则删除
-    if filename in uos.listdir():
-        print(f"删除已存在的文件: {filename}")
-        uos.remove(filename)
+    # 输出文件
+    sfile = 's.pcm'
+    
+    # 检查文件是否存在，存在则删除
+    if sfile in uos.listdir():
+        print('删除旧文件:', sfile)
+        uos.remove(sfile)
         time.sleep(0.5)
     
-    # 打开文件并写入WAV头
-    with open(filename, 'wb') as f:
-        # 预计算数据大小
-        total_data_size = sampleRate * num_channels * (bitsPerSample // 8) * duration
-        header = create_wav_header(sampleRate, bitsPerSample, num_channels, total_data_size)
-        f.write(header)
-        
-        # 开始录音
-        print("开始录音...")
-        start_time = time.time()
-        while time.time() - start_time < duration:
-            read_buf = bytearray(bufSize)  # 读取缓冲区
-            bytes_read = audioInI2S.readinto(read_buf)
-            f.write(read_buf[:bytes_read])  # 写入文件
-            print(f"已录制 {bytes_read} 字节")
-        
-        print("录音结束")
+    fin = open(sfile, 'wb')
     
-    # 关闭I2S设备
-    audioInI2S.deinit()
+    # 写入WAV文件头
+    head = createWavHeader(sampleRate, bitsPerSample, num_channels, bufSize * file_duration)
+    fin.write(head)
+    
+    print('开始录音...')
+    
+    while recoder:
+        # 读取音频数据
+        currByteCount = audioInI2S.readinto(readBuf)
+        print('读取字节数:', currByteCount)
+        
+        # 将读取的数据写入文件
+        audio_data = bytearray()
+        audio_data.extend(readBuf)
+        fin.write(audio_data)
+        
+        # 检查是否到达设定的录音时长
+        if time.time() - start_time >= file_duration:
+            recoder = False
+    
+    fin.close()
+    print('录音结束')
+    print('准备进行识别')
 
-# 测试录音功能
-if __name__ == '__main__':
-    output_file = '/recording.wav'  # 保存路径
-    record_duration = 5  # 录音时长（秒）
-    
-    print(f"开始录制 {record_duration} 秒音频...")
-    record_audio(output_file, record_duration)
-    print(f"音频已保存至 {output_file}")
+# 执行录音
+try:
+    record_audio()
+except Exception as e:
+    print("录音过程中出错:", e)
+
+# 清理资源
+audioInI2S.deinit()
+
