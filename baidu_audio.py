@@ -12,8 +12,8 @@ dev_cuid = binascii.hexlify(unique_id()).decode("utf-8")
 print(dev_cuid)
 
 # 百度语音识别和语音合成 API 密钥（填入你自己的）
-apikey = 'fsgLPOlFX0aW1xSJAk3oiS0p'  # 语音识别API Key
-sercretkey = 'DHgbHfasWiF9POj6zIcjzKntCoboHlG1'  # 语音识别Secret Key
+apikey = ''  # 语音识别API Key
+sercretkey = ''  # 语音识别Secret Key
 
 # 获取访问令牌（token）
 def fetch_token(API_Key, Secret_Key):
