@@ -2,6 +2,8 @@ from wifi_connect import do_connect
 import active 
 from audio import play_audio
 import uasyncio as asyncio
+from baidu_audio import *
+from mic import *
 
 async def audio_handler():
     print("检测到触发, 播放音频...")
@@ -13,7 +15,27 @@ async def audio_handler():
 def trigger_callback():
     """回调函数，执行音频播放"""
     await audio_handler() 
-    print("音频播放完成，继续执行其他任务...") 
+    print("音频播放完成")
+    
+    # 创建 AudioRecorder 实例
+    recorder = AudioRecorder()
+    # 开始录音
+    recorder.record_audio(3, "recording.wav")
+    # 关闭 I2S 接口
+    recorder.deinit()
+    
+    try:
+        # 语音识别示例：从 PCM 文件识别文字
+        recognized_text = recongize("recording.wav")
+        print(f"识别结果: {recognized_text}")
+    except ValueError as e:
+        print(f"语音识别错误: {e}")
+    
+    try:
+        # 语音合成示例：将文本转为语音并播放
+        speech_tts(apikey, sercretkey, recognized_text)
+    except Exception as e:
+        print(f"语音合成错误: {e}")
 
 async def main():
     print("Welcome to MicroPython!")
