@@ -12,10 +12,9 @@ dev_cuid = binascii.hexlify(unique_id()).decode("utf-8")
 print(dev_cuid)
 
 # 百度语音识别和语音合成 API 密钥（填入你自己的）
-apikey = ''  # 语音识别API Key
-sercretkey = ''  # 语音识别Secret Key
+apikey = "fsgLPOlFX0aW1xSJAk3oiS0p"
+sercretkey = "YYw6JdIJLe4aAoksgy19YraYisgHZCFP"
 
-# 获取访问令牌（token）
 def fetch_token(API_Key, Secret_Key):
     url = f'http://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id={API_Key}&client_secret={Secret_Key}'
     payload = json.dumps("")
@@ -26,7 +25,6 @@ def fetch_token(API_Key, Secret_Key):
     response = urequests.request("POST", url, headers=headers, data=payload)
     return str(response.json().get("access_token"))
 
-#语音识别，极速段语音识别 dev_pid必须是80001
 def recongize(audiofile, dev_pid=80001, chunk_size=4096):
     """使用 RAW 方式，分块上传音频数据"""
     token = fetch_token(apikey, sercretkey)
@@ -36,9 +34,8 @@ def recongize(audiofile, dev_pid=80001, chunk_size=4096):
         'Content-Type': 'audio/pcm;rate=16000',
     }
 
-    # 以流式模式打开文件
     with open(audiofile, 'rb') as f:
-        uresponse = urequests.post(url, data=f, headers=headers)  # 直接传递文件对象
+        uresponse = urequests.post(url, data=f, headers=headers)
 
     results = uresponse.json()
     
@@ -47,12 +44,9 @@ def recongize(audiofile, dev_pid=80001, chunk_size=4096):
     else:
         raise ValueError(f"识别错误: {results.get('err_msg')}, 错误码: {results.get('err_no')}")
 
-
-
-# 语音合成（TTS）
 def speech_tts(API_Key, Secret_Key, text_tts):
     _token = fetch_token(apikey, sercretkey)
-    text = binascii.hexlify(text_tts.encode('utf-8')).decode("utf-8")  # 对文字进行转码
+    text = binascii.hexlify(text_tts.encode('utf-8')).decode("utf-8") 
     text_urlencode = ''
     for i in range(0, len(text)):
         if i % 2 == 0:
@@ -61,10 +55,9 @@ def speech_tts(API_Key, Secret_Key, text_tts):
     
     tts_url = f'http://tsn.baidu.com/text2audio?tex={text_urlencode}&tok={_token}&cuid={dev_cuid}&ctp=1&lan=zh&spd=5&vol=5&per=111&aue=6'
     
-    # 创建音频输出对象
-    i2s = I2S(1, sck=Pin(5), ws=Pin(14), sd=Pin(11), mode=I2S.TX, bits=16, format=I2S.MONO, rate=16000, ibuf=20000)
+    i2s = I2S(1, sck=Pin(18), ws=Pin(8), sd=Pin(17), mode=I2S.TX, bits=16, format=I2S.MONO, rate=16000, ibuf=20000)
     response = urequests.get(tts_url, stream=True)
-    response.raw.read(44)  # 跳过WAV头
+    response.raw.read(44) 
     
     while True:
         try:
