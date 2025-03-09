@@ -1,8 +1,9 @@
 import urequests
 import ujson
 
-def ask_question(question):
-    API_TOKEN = "sk-mzrocmemoiymjtnuelgeukhwjdgawgbwnrwurxgoemifyyan"  # 替换为你的API Token
+def ask_question(question, SILICON_KEY):
+    
+    API_TOKEN = SILICON_KEY 
     url = "https://api.siliconflow.cn/v1/chat/completions"
     headers = {
         "Authorization": "Bearer " + API_TOKEN,
@@ -49,10 +50,10 @@ def ask_question(question):
             content = message.get("content", "")
             break
         
-        if content:
-            print("\n提取的 Content:", content)
-        else:
-            print("未获取到 Content。")
+#         if content:
+#             print("\n提取的 Content:", content)
+#         else:
+#             print("未获取到 Content。")
         
         return content
         
