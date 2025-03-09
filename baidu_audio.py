@@ -11,10 +11,6 @@ audiorate = 16000
 dev_cuid = binascii.hexlify(unique_id()).decode("utf-8")
 print(dev_cuid)
 
-# 百度语音识别和语音合成 API 密钥（填入你自己的）
-apikey = "fsgLPOlFX0aW1xSJAk3oiS0p"
-sercretkey = "YYw6JdIJLe4aAoksgy19YraYisgHZCFP"
-
 def fetch_token(API_Key, Secret_Key):
     url = f'http://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id={API_Key}&client_secret={Secret_Key}'
     payload = json.dumps("")
@@ -25,7 +21,7 @@ def fetch_token(API_Key, Secret_Key):
     response = urequests.request("POST", url, headers=headers, data=payload)
     return str(response.json().get("access_token"))
 
-def recongize(audiofile, dev_pid=80001, chunk_size=4096):
+def recongize(apikey, sercretkey, audiofile, dev_pid=80001, chunk_size=4096):
     """使用 RAW 方式，分块上传音频数据"""
     token = fetch_token(apikey, sercretkey)
     url = f'http://vop.baidu.com/pro_api?dev_pid={dev_pid}&cuid={dev_cuid}&token={token}'
@@ -44,7 +40,7 @@ def recongize(audiofile, dev_pid=80001, chunk_size=4096):
     else:
         raise ValueError(f"识别错误: {results.get('err_msg')}, 错误码: {results.get('err_no')}")
 
-def speech_tts(API_Key, Secret_Key, text_tts):
+def speech_tts(apikey, sercretkey, text_tts):
     _token = fetch_token(apikey, sercretkey)
     text = binascii.hexlify(text_tts.encode('utf-8')).decode("utf-8") 
     text_urlencode = ''
