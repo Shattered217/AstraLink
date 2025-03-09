@@ -7,6 +7,9 @@
         "api_key": "",
         "secret_key": ""
     },
+    "audio": {
+        "audio_url": ""
+    },
     "silicon": {
         "API_TOKEN": ""
     }
