@@ -1,0 +1,14 @@
+{
+    "wifi": {
+        "ssid": "",
+        "password": ""
+    },
+    "baidu": {
+        "api_key": "",
+        "secret_key": ""
+    },
+    "silicon": {
+        "API_TOKEN": ""
+    }
+}
+
