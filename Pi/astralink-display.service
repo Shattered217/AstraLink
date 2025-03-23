@@ -1,0 +1,13 @@
+[Unit]
+Description=AstraLink Display Service
+After=graphical.target  # 确保HDMI设备已就绪
+
+[Service]
+ExecStart=/home/Shattered/AstraLink/AstraLink/bin/python /home/Shattered/AstraLink/display.py
+WorkingDirectory=/home/Shattered/AstraLink/
+Restart=always
+User=Shattered
+Environment=DISPLAY=:0 
+
+[Install]
+WantedBy=graphical.target
