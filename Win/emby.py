@@ -6,7 +6,7 @@ from flask import Flask, request, jsonify
 
 # 配置参数
 EMBY_URL = "http://192.168.101.236:8091"  # Emby 服务器地址
-API_KEY = "43a6513adb44436e813f7fcb7c329143"  # Emby API 密钥
+API_KEY = "xxxxxxxxxxxxxxxxxxxx"  # Emby API 密钥
 VLC_PATH = r"D:\VideoLAN\VLC\vlc.exe"  # VLC 可执行文件路径
 
 app = Flask(__name__)
