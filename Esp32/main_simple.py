@@ -10,6 +10,8 @@ import time
 from ha_command import *
 from mood import *
 import random
+from lan_stt import *
+from emby import send_movie_name
 
 async def handle_trigger_actions():
     config = load_config()
@@ -52,6 +54,7 @@ async def handle_trigger_actions():
     start_time = time.time()
     try:
         text = recongize(BAIDU_API_KEY, BAIDU_SECRET_KEY, "recording.wav")
+#         text = lan_stt(language='zh', model='medium')
         print(f"识别结果: {text}")
     except ValueError as e:
         print(f"识别错误: {e}")
@@ -67,6 +70,7 @@ async def handle_trigger_actions():
     audio_response = response["audio_content"]
     command_response = response["command"]
     emoji_response = response["emoji"]
+    movie_name = response["movie"]
     print(f"Audio Content: {audio_response}")
     print(f"Command: {command_response}")
     print(f"Emoji: {emoji_response}")
@@ -79,8 +83,12 @@ async def handle_trigger_actions():
         print("关闭观影模式：")
         stop_movie_mode()
         
-    #发送心情6
+    #发送心情
     send_mood(emoji_response[0])
+    
+    #调用win播放Emby
+    if movie_name != 0:
+        send_movie_name(movie_name)
 
     # 语音合成
     start_time = time.time()
