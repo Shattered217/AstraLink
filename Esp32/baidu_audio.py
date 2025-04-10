@@ -3,6 +3,7 @@ import time
 import binascii
 import urequests
 from machine import unique_id, I2S, Pin
+import uasyncio as asyncio
 
 # 配置音频采样率与设备ID
 audiorate = 16000
@@ -64,7 +65,7 @@ def recongize(apikey, sercretkey, audiofile, dev_pid=80001, chunk_size=4096):
     else:
         raise ValueError(f"识别错误: {results.get('err_msg')}, 错误码: {results.get('err_no')}")
 
-def speech_tts(apikey, sercretkey, text_tts):
+async def speech_tts(apikey, sercretkey, text_tts):
     """语音合成函数"""
     token = get_token(apikey, sercretkey)  
     text = binascii.hexlify(text_tts.encode('utf-8')).decode("utf-8") 

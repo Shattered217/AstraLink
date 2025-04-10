@@ -1,19 +1,20 @@
 from wifi_connect import do_connect
 import uasyncio as asyncio
-from audio import play_audio
 from mic import *
 from baidu_audio import recongize, speech_tts
 from silicon_deepseek import ask_question
 from active import *
 from load_config import *
 import time
-from ha_command import *
-from mood import *
+from ha_command import ha_action
+from mood import send_mood
 import random
-from lan_stt import *
 from emby import send_movie_name
 
+movie_name = None # 清除电影记忆
+
 async def handle_trigger_actions():
+    global movie_name
     config = load_config()
     if config:
         BAIDU_API_KEY = config["baidu"]["api_key"]
@@ -32,7 +33,7 @@ async def handle_trigger_actions():
     start_time = time.time()
     active_response = random.choice(active_words)
     try:
-        speech_tts(BAIDU_API_KEY, BAIDU_SECRET_KEY, active_response)
+        await speech_tts(BAIDU_API_KEY, BAIDU_SECRET_KEY, active_response)
         print("唤醒语音已生成")
     except Exception as e:
         print(f"合成错误: {e}")
@@ -58,12 +59,17 @@ async def handle_trigger_actions():
         print(f"识别结果: {text}")
     except ValueError as e:
         print(f"识别错误: {e}")
+        text = "语音识别服务器错误"
         return
     print(f"语音识别耗时: {time.time() - start_time:.2f} 秒")
 
     # AI对话
     start_time = time.time()
-    response = ask_question(text, SILICON_KEY)
+    try: 
+        response = ask_question(text, SILICON_KEY, last_movie=movie_name)
+    except Exception as e:
+        print(f"AI对话错误: {e}")
+        response = {"audio_content": "很抱歉，我刚刚有点短路了。", "command": "movie_off", "emoji": "thinking", "movie": 0}
     print(f"AI对话耗时: {time.time() - start_time:.2f} 秒")
 
     #拆包
@@ -76,25 +82,21 @@ async def handle_trigger_actions():
     print(f"Emoji: {emoji_response}")
     
     #执行Command
-    if command_response ==  "movie_on":
-        print("开启观影模式：")
-        start_movie_mode()
-    if command_response ==  "movie_off":
-        print("关闭观影模式：")
-        stop_movie_mode()
+    if command_response:
+        await ha_action(command_response)
         
     #发送心情
-    send_mood(emoji_response[0])
+    if emoji_response:
+        await send_mood(emoji_response)
     
     #调用win播放Emby
     if movie_name != 0:
-        send_movie_name(movie_name)
+        await send_movie_name(movie_name)
 
     # 语音合成
     start_time = time.time()
     try:
-        speech_tts(BAIDU_API_KEY, BAIDU_SECRET_KEY, audio_response)
-        print("语音回复已生成")
+        await speech_tts(BAIDU_API_KEY, BAIDU_SECRET_KEY, audio_response)
     except Exception as e:
         print(f"合成错误: {e}")
     print(f"语音合成耗时: {time.time() - start_time:.2f} 秒")
@@ -102,7 +104,6 @@ async def handle_trigger_actions():
 #主函数
 async def main():
     print("系统启动中...")
-    
     config = load_config()
     if config:
         WIFI_SSID = config["wifi"]["ssid"]

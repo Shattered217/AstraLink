@@ -1,8 +1,9 @@
 import urequests
 import json
 import base64
+import uasyncio as asyncio
 
-def send_movie_name(movie_name):
+async def send_movie_name(movie_name):
     url = "http://192.168.101.217:5000/play" # 播放端IP(电脑)
     
     data = {"movie_name": movie_name}

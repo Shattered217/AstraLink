@@ -1,9 +1,10 @@
 import urequests
 import time
+import uasyncio as asyncio
 
 SERVER_URL = 'http://192.168.101.246:5000/mood'
 
-def send_mood(mood):
+async def send_mood(mood):
     headers = {'Content-Type': 'application/json'}
     data = {'mood': mood}
     try:
