@@ -24,6 +24,8 @@ def ask_question(question, SILICON_KEY, last_movie=None):
     如果用户表示要观影或询问电影推荐，则返回 "movie_on", 并且将影片填入"movie"。
     如果用户明确表示不想观影或拒绝推荐，则返回 "movie_off"，同时"movie"置0。
     不允许输出除上述字段之外的任何内容或格式。
+    由于你的知识库较旧，请不要关注影片是否上映。
+    当影片有多部时，请回复数字，例如 疾速追杀4。
     请根据用户的提问灵活回答，避免每次都推荐相同的电影，但是必须返回字典的格式。""" + movie_context
     
     payload = {

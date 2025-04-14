@@ -7,7 +7,7 @@ from flask import Flask, request, jsonify
 # 配置参数
 EMBY_URL = "http://192.168.101.236:8091"  # Emby 服务器地址
 API_KEY = "xxxxxxxxxxxxxxxxxxxx"  # Emby API 密钥
-VLC_PATH = r"D:\VideoLAN\VLC\vlc.exe"  # VLC 可执行文件路径
+MPV_PATH = r"D:\mpv\mpv.exe"
 
 app = Flask(__name__)
 
@@ -61,16 +61,38 @@ def play_movie():
             return jsonify({"error": "未找到匹配的影片"}), 404
 
         movie_id = emby_data["Items"][0]["Id"]
-        stream_url = f"{EMBY_URL}/Videos/{movie_id}/stream.mp4?api_key={API_KEY}"
         print(f"找到影片 ID: {movie_id}")
+
+        # 查询影片的 MediaSource 信息，获取文件格式
+        media_url = f"{EMBY_URL}/Items/{movie_id}/PlaybackInfo"
+        media_response = requests.get(media_url, params={"api_key": API_KEY})
+        if media_response.status_code != 200:
+            return jsonify({"error": "无法获取影片的播放信息"}), 500
+
+        media_info = media_response.json()
+        if not media_info.get("MediaSources"):
+            return jsonify({"error": "没有找到影片的媒体源"}), 404
+
+        # 获取文件扩展名（如mp4或mkv）
+        media_source = media_info["MediaSources"][0]
+        file_extension = media_source.get("Container", "").lower()
+        print(f"影片文件格式: {file_extension}")
+
+        if file_extension == "mkv":
+            stream_url = f"{EMBY_URL}/Videos/{movie_id}/stream.mkv?api_key={API_KEY}"
+        elif file_extension == "mp4":
+            stream_url = f"{EMBY_URL}/Videos/{movie_id}/stream.mp4?api_key={API_KEY}"
+        else:
+            return jsonify({"error": f"不支持的文件格式: {file_extension}"}), 400
+
         print(f"播放链接: {stream_url}")
 
-        # 调用 VLC 全屏播放
+        # 调用 mpv 全屏播放
         try:
-            subprocess.Popen([VLC_PATH, "--fullscreen", stream_url])
+            subprocess.Popen([MPV_PATH, "--fullscreen", stream_url])
         except Exception as e:
-            print(f"调用 VLC 失败: {e}")
-            return jsonify({"error": "无法调用 VLC"}), 500
+            print(f"调用 mpv 失败: {e}")
+            return jsonify({"error": "无法调用 mpv"}), 500
 
         return jsonify({"message": "播放成功", "movie_id": movie_id, "stream_url": stream_url}), 200
 

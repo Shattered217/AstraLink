@@ -21,5 +21,10 @@ async def send_movie_name(movie_name):
     except Exception as e:
         print(f"发送请求失败: {e}")
 
+# 测试代码
+async def test():
+    await send_movie_name("疾速追杀4")
+
 if __name__ == '__main__':
-    send_movie_name("疾速追杀4")
+    asyncio.run(test())
+    

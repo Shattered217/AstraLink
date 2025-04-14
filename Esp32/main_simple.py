@@ -11,7 +11,7 @@ from mood import send_mood
 import random
 from emby import send_movie_name
 
-movie_name = None # 清除电影记忆
+movie_name = None  # 清除电影记忆
 
 async def handle_trigger_actions():
     global movie_name
@@ -24,12 +24,12 @@ async def handle_trigger_actions():
     print("检测到触发事件")
     # 唤醒语音合成
     active_words = [
-    "你好，我在呢。",
-    "你好，需要帮忙吗？",
-    "你好，我已经准备好了。",
-    "你好，随时为您服务。",
-    "你好，请问需要做什么？"
-    ]	
+        "你好，我在呢。",
+        "你好，需要帮忙吗？",
+        "你好，我已经准备好了。",
+        "你好，随时为您服务。",
+        "你好，请问需要做什么？"
+    ]
     start_time = time.time()
     active_response = random.choice(active_words)
     try:
@@ -38,24 +38,23 @@ async def handle_trigger_actions():
     except Exception as e:
         print(f"合成错误: {e}")
     print(f"语音合成耗时: {time.time() - start_time:.2f} 秒")
-    
+
     # 录音
     print("开始录音...")
-    recorder = None 
+    recorder = None
     try:
         recorder = AudioRecorder()
         recorder.record_audio(5, "recording.wav")
-        recorder.deinit() 
+        recorder.deinit()
         print("录音结束")
     except Exception as e:
         print("录音失败:", e)
-        return 
-    
+        return
+
     # 语音识别
     start_time = time.time()
     try:
         text = recongize(BAIDU_API_KEY, BAIDU_SECRET_KEY, "recording.wav")
-#         text = lan_stt(language='zh', model='medium')
         print(f"识别结果: {text}")
     except ValueError as e:
         print(f"识别错误: {e}")
@@ -65,14 +64,14 @@ async def handle_trigger_actions():
 
     # AI对话
     start_time = time.time()
-    try: 
+    try:
         response = ask_question(text, SILICON_KEY, last_movie=movie_name)
     except Exception as e:
         print(f"AI对话错误: {e}")
         response = {"audio_content": "很抱歉，我刚刚有点短路了。", "command": "movie_off", "emoji": "thinking", "movie": 0}
     print(f"AI对话耗时: {time.time() - start_time:.2f} 秒")
 
-    #拆包
+    # 拆包
     audio_response = response["audio_content"]
     command_response = response["command"]
     emoji_response = response["emoji"]
@@ -80,28 +79,30 @@ async def handle_trigger_actions():
     print(f"Audio Content: {audio_response}")
     print(f"Command: {command_response}")
     print(f"Emoji: {emoji_response}")
-    
-    #执行Command
+    print(f"Movie: {movie_name}")
+
+    # 并行执行所有后续任务
+    tasks = []
+    # 收集需要执行的任务
     if command_response:
-        await ha_action(command_response)
-        
-    #发送心情
+        tasks.append(ha_action(command_response))
     if emoji_response:
-        await send_mood(emoji_response)
-    
-    #调用win播放Emby
+        tasks.append(send_mood(emoji_response))
     if movie_name != 0:
-        await send_movie_name(movie_name)
+        tasks.append(send_movie_name(movie_name))
+    if audio_response:  # 语音合成任务
+        tasks.append(speech_tts(BAIDU_API_KEY, BAIDU_SECRET_KEY, audio_response))
 
-    # 语音合成
-    start_time = time.time()
-    try:
-        await speech_tts(BAIDU_API_KEY, BAIDU_SECRET_KEY, audio_response)
-    except Exception as e:
-        print(f"合成错误: {e}")
-    print(f"语音合成耗时: {time.time() - start_time:.2f} 秒")
+    # 并发执行所有任务并处理异常
+    if tasks:
+        start_time = time.time()
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        for result in results:
+            if isinstance(result, Exception):
+                print(f"并发任务执行出错: {repr(result)}")
+        print(f"并发任务总耗时: {time.time() - start_time:.2f} 秒")
 
-#主函数
+# 主函数保持不变
 async def main():
     print("系统启动中...")
     config = load_config()
@@ -111,17 +112,17 @@ async def main():
     else:
         print("未能加载配置文件，程序退出")
         exit()
-    
+
     try:
         await do_connect(WIFI_SSID, WIFI_PASSWORD)
         print("WiFi 连接成功")
     except Exception as e:
         print("WiFi 连接失败:", e)
         return
-    
+
     print("启动触发监控任务...")
     asyncio.create_task(trigger_manager.process_triggers())
-    
+
     print("触发事件循环运行中...")
     while True:
         await asyncio.sleep(1)  # 保持事件循环运行
