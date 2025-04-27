@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>数字孪生机器人控制面板</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1><i class="fas fa-robot"></i> 数字孪生机器人控制面板</h1>
+        <div class="status-indicator">
+          <span class="status-text"
+            >状态: <span id="status">加载中...</span></span
+          >
+          <div class="status-dot" id="status-dot"></div>
+        </div>
+      </header>
+
+      <div class="dashboard">
+        <!-- 左侧面板 -->
+        <div class="left-panel">
+          <div class="panel wifi-panel">
+            <h2><i class="fas fa-wifi"></i> WiFi连接状态</h2>
+            <div class="wifi-quality">
+              <div class="wifi-bars">
+                <div class="bar" id="wifi-bar-1"></div>
+                <div class="bar" id="wifi-bar-2"></div>
+                <div class="bar" id="wifi-bar-3"></div>
+                <div class="bar" id="wifi-bar-4"></div>
+                <div class="bar" id="wifi-bar-5"></div>
+              </div>
+              <div class="wifi-text" id="wifi-text">未连接</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 中央机器人模型 -->
+        <div class="center-panel">
+          <div class="bot-model">
+            <h2><i class="fas fa-robot"></i> 机器人模型</h2>
+            <div class="model-container">
+              <div class="model-placeholder">
+                <div class="model-image-placeholder">
+                  <div class="model-image"></div>
+                  <div class="model-label">AI 机器人</div>
+                </div>
+                <div class="model-status">
+                  <div class="model-status-dot"></div>
+                  <span>在线</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧面板 -->
+        <div class="right-panel">
+          <div class="panel chat-panel">
+            <h2><i class="fas fa-comments"></i> 历史对话</h2>
+            <div class="chat-container" id="chat-container">
+              <div class="loading-message">加载历史对话...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <p>© 2025 数字孪生机器人控制面板 | 版本 1.0.0</p>
+      </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  </body>
+</html>

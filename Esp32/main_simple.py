@@ -1,4 +1,4 @@
-from wifi_connect import do_connect
+from wifi_connect import *
 import uasyncio as asyncio
 from mic import *
 from baidu_audio import recongize, speech_tts
@@ -10,10 +10,13 @@ from ha_command import ha_action
 from mood import send_mood
 import random
 from emby import send_movie_name
+from send_data import send_data
 
 movie_name = None  # 清除电影记忆
+wlan = None
 
 async def handle_trigger_actions():
+    send_data("status", 1)
     global movie_name
     config = load_config()
     if config:
@@ -83,15 +86,17 @@ async def handle_trigger_actions():
 
     # 并行执行所有后续任务
     tasks = []
-    # 收集需要执行的任务
     if command_response:
         tasks.append(ha_action(command_response))
     if emoji_response:
         tasks.append(send_mood(emoji_response))
     if movie_name != 0:
         tasks.append(send_movie_name(movie_name))
-    if audio_response:  # 语音合成任务
+    if audio_response: 
         tasks.append(speech_tts(BAIDU_API_KEY, BAIDU_SECRET_KEY, audio_response))
+    tasks.append(send_data("wifi_quality", get_wifi_quality()))
+    tasks.append(send_data("ai_chat", text, audio_response))
+    tasks.append(send_data("status", 0))
 
     # 并发执行所有任务并处理异常
     if tasks:
@@ -101,8 +106,9 @@ async def handle_trigger_actions():
             if isinstance(result, Exception):
                 print(f"并发任务执行出错: {repr(result)}")
         print(f"并发任务总耗时: {time.time() - start_time:.2f} 秒")
+        
+    
 
-# 主函数保持不变
 async def main():
     print("系统启动中...")
     config = load_config()
@@ -116,10 +122,11 @@ async def main():
     try:
         await do_connect(WIFI_SSID, WIFI_PASSWORD)
         print("WiFi 连接成功")
+        print(f"WiFi 连接质量: {get_wifi_quality()}")
     except Exception as e:
         print("WiFi 连接失败:", e)
         return
-
+    
     print("启动触发监控任务...")
     asyncio.create_task(trigger_manager.process_triggers())
 

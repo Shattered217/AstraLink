@@ -82,6 +82,8 @@ def play_movie():
             stream_url = f"{EMBY_URL}/Videos/{movie_id}/stream.mkv?api_key={API_KEY}"
         elif file_extension == "mp4":
             stream_url = f"{EMBY_URL}/Videos/{movie_id}/stream.mp4?api_key={API_KEY}"
+        elif file_extension == "strm":
+            stream_url = f"{EMBY_URL}/Videos/{movie_id}/stream.mp4?api_key={API_KEY}"
         else:
             return jsonify({"error": f"不支持的文件格式: {file_extension}"}), 400
 
@@ -101,4 +103,4 @@ def play_movie():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5001)
