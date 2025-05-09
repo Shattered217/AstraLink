@@ -1,0 +1,15 @@
+[Unit]
+Description=AstraLink Service
+After=graphical.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/Shattered/AstraLink/
+ExecStart=/home/Shattered/AstraLink/start.sh
+Restart=always
+User=Shattered
+Environment=DISPLAY=:0
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+
+[Install]
+WantedBy=graphical.target
