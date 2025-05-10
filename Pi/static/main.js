@@ -79,10 +79,31 @@ function updateWeather() {
     });
 }
 
+function updateSensor() {
+  fetch("/api/sensor")
+    .then((r) => r.json())
+    .then((d) => {
+      if (d.temperature !== undefined && d.humidity !== undefined) {
+        document.getElementById("sensor-temp").textContent =
+          d.temperature + "°C";
+        document.getElementById("sensor-humidity").textContent =
+          d.humidity + "%";
+      } else {
+        document.getElementById("sensor-temp").textContent = "--°C";
+        document.getElementById("sensor-humidity").textContent = "--%";
+      }
+    })
+    .catch(() => {
+      document.getElementById("sensor-temp").textContent = "--°C";
+      document.getElementById("sensor-humidity").textContent = "--%";
+    });
+}
+
 // 定时刷新
 setInterval(updateTime, 1000);
 setInterval(updateYiyan, 30000);
 setInterval(updateEmoji, 10000);
+setInterval(updateSensor, 5000); // 每5秒刷新一次温湿度
 setInterval(updateWeather, 30 * 60 * 1000); // 半小时刷新一次
 
 // 首次加载
@@ -90,6 +111,7 @@ updateTime();
 updateYiyan();
 updateEmoji();
 updateWeather();
+updateSensor();
 
 // 双击全屏
 document.body.ondblclick = toggleFullScreen;

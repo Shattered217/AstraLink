@@ -123,3 +123,30 @@ body {
 #weather-icon {
   font-size: 1.7em;
 }
+.sensor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+  color: #00ffff;
+  font-size: 1.5em;
+  background: rgba(20, 20, 20, 0.5);
+  border-radius: 10px;
+  padding: 8px 16px;
+  box-shadow: 0 2px 8px #00ffff22;
+  width: fit-content;
+}
+#sensor-temp,
+#sensor-humidity {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+#sensor-temp::before {
+  content: "🌡️";
+  font-size: 1.2em;
+}
+#sensor-humidity::before {
+  content: "💧";
+  font-size: 1.2em;
+}
