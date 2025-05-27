@@ -2,7 +2,7 @@ import urequests
 import time
 import uasyncio as asyncio
 
-SERVER_URL = 'http://192.168.101.246:5000/api/mood'
+SERVER_URL = 'http://192.168.101.246:5001/api/mood'
 
 async def send_mood(mood):
     headers = {'Content-Type': 'application/json'}
@@ -18,3 +18,10 @@ async def send_mood(mood):
 # for mood in moods:
 #     send_mood(mood)
 #     time.sleep(15)
+
+# 测试代码
+async def test():
+    await send_mood("cool")
+
+if __name__ == '__main__':
+    asyncio.run(test())
