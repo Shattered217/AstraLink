@@ -52,18 +52,59 @@ def recongize(apikey, sercretkey, audiofile, dev_pid=80001, chunk_size=4096):
     }
 
     start_time = time.time()
-    with open(audiofile, 'rb') as f:
-        uresponse = urequests.post(url, data=f, headers=headers)
-    print(f"上传音频耗时: {time.time() - start_time:.2f} 秒")
+    uresponse = None
+    try:
+        # 先清理内存
+        import gc
+        gc.collect()
+        
+        with open(audiofile, 'rb') as f:
+            uresponse = urequests.post(url, data=f, headers=headers)
+        print(f"上传音频耗时: {time.time() - start_time:.2f} 秒")
 
-    start_time = time.time()
-    results = uresponse.json()
-    print(f"解析返回数据耗时: {time.time() - start_time:.2f} 秒")
-    
-    if results.get("err_no") == 0:
-        return "".join(results["result"])
-    else:
-        raise ValueError(f"识别错误: {results.get('err_msg')}, 错误码: {results.get('err_no')}")
+        start_time = time.time()
+        try:
+            # 获取响应文本
+            response_text = uresponse.text
+            print(f"原始响应文本: {response_text}")
+            
+            # 解析JSON
+            results = json.loads(response_text)
+            print(f"解析返回数据耗时: {time.time() - start_time:.2f} 秒")
+            print(f"返回数据: {results}")
+            
+            if not results:
+                raise ValueError("返回数据为空")
+                
+            if results.get("err_no") == 0:
+                if "result" in results and results["result"]:
+                    # 将Unicode编码转换为中文
+                    result_text = "".join(results["result"])
+                    return result_text
+                else:
+                    raise ValueError("返回数据中没有识别结果")
+            else:
+                error_msg = results.get("err_msg", "未知错误")
+                error_no = results.get("err_no", "未知错误码")
+                raise ValueError(f"识别错误: {error_msg}, 错误码: {error_no}")
+                
+        except json.JSONDecodeError as e:
+            print(f"JSON解析错误: {e}")
+            print(f"原始响应文本: {response_text}")
+            raise ValueError(f"JSON解析错误: {e}")
+        except ValueError as e:
+            print(f"处理错误: {e}")
+            raise
+        finally:
+            if uresponse:
+                uresponse.close()
+            
+    except Exception as e:
+        print(f"请求异常: {str(e)}")
+        raise
+    finally:
+        # 清理内存
+        gc.collect()
 
 async def speech_tts(apikey, sercretkey, text_tts):
     """语音合成函数"""
@@ -77,24 +118,40 @@ async def speech_tts(apikey, sercretkey, text_tts):
     
     tts_url = f'http://tsn.baidu.com/text2audio?tex={text_urlencode}&tok={token}&cuid={dev_cuid}&ctp=1&lan=zh&spd=5&vol=5&per=111&aue=6'
     
-    i2s = I2S(1, sck=Pin(18), ws=Pin(8), sd=Pin(17), mode=I2S.TX, bits=16, format=I2S.MONO, rate=16000, ibuf=20000)
-    response = urequests.get(tts_url, stream=True)
-    response.raw.read(44) 
-    
-    while True:
-        try:
-            content_byte = response.raw.read(1024)
-            if len(content_byte) == 0:
-                time.sleep_ms(100)
+    i2s = None
+    response = None
+    try:
+        i2s = I2S(1, sck=Pin(18), ws=Pin(8), sd=Pin(17), mode=I2S.TX, bits=16, format=I2S.MONO, rate=16000, ibuf=20000)
+        response = urequests.get(tts_url, stream=True)
+        
+        if response.status_code != 200:
+            raise ValueError(f"TTS请求失败，状态码: {response.status_code}")
+            
+        response.raw.read(44) 
+        
+        while True:
+            try:
+                content_byte = response.raw.read(1024)
+                if len(content_byte) == 0:
+                    time.sleep_ms(100)
+                    break
+                i2s.write(content_byte)
+                await asyncio.sleep_ms(10)  # 添加小延迟，让其他任务有机会执行
+            except Exception as ret:
+                print("播放音频时发生异常:", ret)
                 break
-            i2s.write(content_byte)
-        except Exception as ret:
-            print("产生的异常为", ret)
+                
+        # 等待音频播放完成
+        await asyncio.sleep_ms(500)  # 添加额外延迟确保音频播放完成
+        
+    except Exception as e:
+        print(f"TTS处理异常: {str(e)}")
+        raise
+    finally:
+        if i2s:
             i2s.deinit()
-            break
-    
-    time.sleep_ms(100)
-    i2s.deinit()
+        if response:
+            response.close()
 
 # 示例：语音识别与语音合成
 if __name__ == "__main__":
@@ -113,3 +170,4 @@ if __name__ == "__main__":
         speech_tts(apikey, sercretkey, "你好，世界！")
     except Exception as e:
         print(f"语音合成错误: {e}")
+

@@ -4,12 +4,13 @@ import time
 import uasyncio as asyncio
 
 ENDPOINTS = {
-    "wifi_quality": "/api/wifi",
+    "wifi_quality": "/api/wifi_quality",
     "ai_chat":     "/api/add_history",
-    "status":  "/api/status",
+    "status":      "/api/status",
+    "emoji":       "/api/mood"  # 添加 emoji endpoint
 }
 
-HOST = "http://192.168.101.217:5000"
+HOST = "http://192.168.101.246:5000"
 
 async def send_data(attr, content1, content2="", timeout=5):
     path = ENDPOINTS.get(attr)
@@ -24,6 +25,10 @@ async def send_data(attr, content1, content2="", timeout=5):
         payload = {
             "message": content1,
             "response": content2
+        }
+    elif attr == "emoji":
+        payload = {
+            "mood": content1
         }
     else:
         payload = {attr: content1}
@@ -48,10 +53,13 @@ async def test():
     await send_data("wifi_quality", 70)
 
     # 发送 AI 对话文本
-    await send_data("ai_chat", "你好，今天的天气如何？", "晴天")
+    await send_data("ai_chat", "你好，今天的天气如何？", "123")
 
     # 发送状态
     await send_data("status", 1)
+    
+    # 发送表情
+    await send_data("emoji", "cool")
 
 if __name__ == "__main__":
     asyncio.run(test())

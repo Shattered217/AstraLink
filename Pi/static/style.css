@@ -125,28 +125,99 @@ body {
 }
 .sensor {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 20px;
-  color: #00ffff;
+  flex-direction: column;
+  gap: 8px;
+  color: #3ffcff;
   font-size: 1.5em;
   background: rgba(20, 20, 20, 0.5);
   border-radius: 10px;
   padding: 8px 16px;
   box-shadow: 0 2px 8px #00ffff22;
   width: fit-content;
+  margin: 20px 0;
 }
-#sensor-temp,
-#sensor-humidity {
+#sensor span {
+  margin-right: 8px;
+}
+.conversation {
+  margin: 10px 0;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.conversation .message,
+.conversation .response {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #fff;
+}
+
+.conversation .message {
+  color: #a8d8ff;
+}
+
+.conversation .response {
+  color: #ffd700;
+}
+
+.status-indicators {
+  position: fixed;
+  top: 40px;
+  right: 20px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 15px;
+  z-index: 1000;
+  background: linear-gradient(90deg, #0a0e17 0%, #1a1f2c 100%);
+  padding: 10px 15px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 255, 255, 0.1);
+  border-left: 4px solid #00ffff;
 }
-#sensor-temp::before {
-  content: "🌡️";
-  font-size: 1.2em;
+
+.wifi-quality {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #00ffff;
+  font-size: 14px;
 }
-#sensor-humidity::before {
-  content: "💧";
-  font-size: 1.2em;
+
+#wifi-icon {
+  font-size: 18px;
+}
+
+#wifi-value {
+  color: #a0a0a0;
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #666;
+  box-shadow: 0 0 10px #666;
+  animation: pulse 2s infinite;
+  transition: all 0.3s ease;
+}
+
+.status-dot.active {
+  background-color: #00ff00;
+  box-shadow: 0 0 10px #00ff00;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(102, 102, 102, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(102, 102, 102, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(102, 102, 102, 0);
+  }
 }

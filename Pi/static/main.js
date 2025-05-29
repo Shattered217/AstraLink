@@ -84,18 +84,16 @@ function updateSensor() {
     .then((r) => r.json())
     .then((d) => {
       if (d.temperature !== undefined && d.humidity !== undefined) {
-        document.getElementById("sensor-temp").textContent =
-          d.temperature + "°C";
-        document.getElementById("sensor-humidity").textContent =
-          d.humidity + "%";
+        document.getElementById("temperature").textContent = d.temperature;
+        document.getElementById("humidity").textContent = d.humidity;
       } else {
-        document.getElementById("sensor-temp").textContent = "--°C";
-        document.getElementById("sensor-humidity").textContent = "--%";
+        document.getElementById("temperature").textContent = "--";
+        document.getElementById("humidity").textContent = "--";
       }
     })
     .catch(() => {
-      document.getElementById("sensor-temp").textContent = "--°C";
-      document.getElementById("sensor-humidity").textContent = "--%";
+      document.getElementById("temperature").textContent = "--";
+      document.getElementById("humidity").textContent = "--";
     });
 }
 

@@ -21,8 +21,9 @@ class TriggerManager:
                 try:
                     message = buffer.decode('utf-8')
                     if '\n' in message:
-                        cmd, buffer = message.split('\n', 1)
-                        await self._process_command(cmd.strip())
+                        line, rest = message.split('\n', 1)
+                        await self._process_command(line.strip())
+                        buffer = rest.encode('utf-8')  # 把剩下的部分重新转为 bytes
                 except UnicodeError:
                     buffer = b''
             await asyncio.sleep_ms(10)
